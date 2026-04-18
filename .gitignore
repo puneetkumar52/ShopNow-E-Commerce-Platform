@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+
+# Environment files — NEVER commit these
+.env
+frontend/.env.local
+frontend/.env.production
+
+# Build output
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

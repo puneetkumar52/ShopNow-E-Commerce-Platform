@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Cart - Bada Bazar</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <div class="navbar-brand">Bada <span>Bazar</span></div>
+
+  <ul class="navbar-links">
+    <li><a href="index.html">🏠 Home</a></li>
+    <li><a href="products.html">🛍️ Products</a></li>
+    <li><a href="cart.html" class="active">🛒 Cart</a></li>
+  </ul>
+
+  <div class="navbar-right">
+    <span id="nav-user" class="auth-btn hidden" style="color: #aaa; font-size:13px;"></span>
+    <a id="nav-login" href="login.html"><button class="auth-btn">Login</button></a>
+    <a id="nav-signup" href="signup.html"><button class="btn-primary" style="padding:7px 16px; font-size:14px;">Sign Up</button></a>
+    <button id="nav-logout" class="logout-btn hidden" onclick="logout()">Logout</button>
+    <a href="cart.html" class="cart-btn">
+      🛒 Cart <span class="cart-count" id="cart-count">0</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ===== CART CONTENT ===== -->
+<div class="page-wrapper">
+  <div class="page-header">🛒 My Cart</div>
+
+  <!-- Not logged in state -->
+  <div id="not-logged-in" class="hidden">
+    <div class="empty-state">
+      <div class="emoji">🔐</div>
+      <h3>Please login first</h3>
+      <p>You need to login to view your cart</p>
+      <a href="login.html"><button class="btn-primary">Go to Login</button></a>
+    </div>
+  </div>
+
+  <!-- Cart content -->
+  <div id="cart-area" class="hidden">
+    <div class="cart-container">
+
+      <!-- Left: Items -->
+      <div>
+        <div id="cart-items-list">
+          <div class="loading">
+            <div class="spinner"></div>
+            <span>Loading your cart...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Summary -->
+      <div class="order-summary" id="order-summary" style="display:none;">
+        <h3>🧾 Order Summary</h3>
+        <div class="summary-row">
+          <span>Items</span>
+          <span id="summary-items">0</span>
+        </div>
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="summary-subtotal">₹0</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery</span>
+          <span style="color:var(--green); font-weight:700;">FREE 🎉</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="summary-total">₹0</span>
+        </div>
+        <button class="checkout-btn" onclick="openCheckout()">Proceed to Checkout ✅</button>
+        <button onclick="clearCart()" style="width:100%; background:none; border:1px solid var(--red); color:var(--red); padding:9px; border-radius:var(--radius-sm); font-size:13px; font-weight:700; cursor:pointer; margin-top:10px; transition:all 0.2s;" onmouseover="this.style.background='var(--red)'; this.style.color='white'" onmouseout="this.style.background='none'; this.style.color='var(--red)'">🗑️ Clear Cart</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== CHECKOUT MODAL ===== -->
+<div class="modal-overlay" id="checkout-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeCheckout()">✕</button>
+    <h2>📦 Place Order</h2>
+
+    <div class="msg-box" id="checkout-msg"></div>
+
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" id="checkout-name" placeholder="abc" />
+    </div>
+
+    <div class="form-group">
+      <label>Delivery Address</label>
+      <textarea id="checkout-address" placeholder="Enter full delivery address..." style="width:100%; border:2px solid var(--border); padding:10px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; resize:vertical; min-height:80px; font-family:'Nunito',sans-serif; transition:border 0.2s;" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="tel" id="checkout-phone" placeholder="Enter phone number" />
+    </div>
+
+    <!-- Order total preview -->
+    <div style="background:var(--light-bg); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; font-weight:700; font-size:16px;">
+        <span>Total Amount:</span>
+        <span style="color:var(--orange);" id="checkout-total-display">₹0</span>
+      </div>
+      <div style="font-size:12px; color:var(--gray); margin-top:4px;">💳 Payment: Cash on Delivery</div>
+    </div>
+
+    <button class="form-submit-btn" onclick="placeOrder()">Place Order 🎉</button>
+  </div>
+</div>
+
+<!-- ===== ORDER SUCCESS ===== -->
+<div class="modal-overlay" id="success-modal">
+  <div class="modal-box" style="text-align:center;">
+    <div style="font-size:70px; margin-bottom:16px;">🎉</div>
+    <h2 style="color:var(--green);">Order Placed!</h2>
+    <p style="color:var(--gray); margin-top:8px; font-size:15px;">Your order has been placed successfully. We will deliver it soon!</p>
+    <div style="background:var(--light-bg); border-radius:var(--radius-sm); padding:14px; margin:20px 0;">
+      <div style="font-size:13px; color:var(--gray);">Order Total</div>
+      <div style="font-size:22px; font-weight:800; color:var(--orange);" id="success-total">₹0</div>
+    </div>
+    <button class="btn-primary" onclick="window.location.href='products.html'" style="margin-right:8px;">Continue Shopping 🛍️</button>
+    <button class="btn-outline" onclick="closeSuccess()" style="color:var(--dark); border-color:var(--dark);">Close</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<script src="common.js"></script>
+<script>
+  var cartItems = [];
+  var cartTotal = 0;
+
+  function init() {
+    var user = getUser();
+    if (!user) {
+      document.getElementById("not-logged-in").classList.remove("hidden");
+    } else {
+      document.getElementById("cart-area").classList.remove("hidden");
+      loadCart();
+    }
+  }
+
+  function loadCart() {
+    var user = getUser();
+    fetch(API + "/api/cart/" + user.userId)
+      .then(function (res) { return res.json(); })
+      .then(function (items) {
+        cartItems = Array.isArray(items) ? items : [];
+        renderCart();
+      })
+      .catch(function () {
+        showToast("Could not load cart", "error");
+      });
+  }
+
+  function renderCart() {
+    var container = document.getElementById("cart-items-list");
+    var summary = document.getElementById("order-summary");
+
+    if (cartItems.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="emoji">🛒</div><h3>Your cart is empty</h3><p>Go add some products to your cart!</p><a href="products.html"><button class="btn-primary">Shop Now 🛍️</button></a></div>';
+      summary.style.display = "none";
+      updateCartCount();
+      return;
+    }
+
+    summary.style.display = "block";
+
+    // Calculate total
+    cartTotal = 0;
+    var totalItems = 0;
+    cartItems.forEach(function (item) {
+      cartTotal += item.price * (item.qty || 1);
+      totalItems += item.qty || 1;
+    });
+
+    // Update summary
+    document.getElementById("summary-items").textContent = totalItems;
+    document.getElementById("summary-subtotal").textContent = "₹" + cartTotal.toFixed(2);
+    document.getElementById("summary-total").textContent = "₹" + cartTotal.toFixed(2);
+
+    // Render items
+    var html = '<div class="cart-items-list">';
+    cartItems.forEach(function (item) {
+      var emoji = getCategoryEmoji("");
+      var imgHTML = item.image
+        ? '<img src="' + item.image + '" alt="' + item.name + '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\'">' +
+          '<div class="cart-item-img-placeholder" style="display:none">' + emoji + '</div>'
+        : '<div class="cart-item-img-placeholder">' + emoji + '</div>';
+
+      html += '<div class="cart-item">';
+      html += imgHTML;
+      html += '<div class="cart-item-info">';
+      html += '<div class="cart-item-name">' + item.name + '</div>';
+      html += '<div class="cart-item-price">₹' + item.price + ' each</div>';
+      html += '<div class="qty-controls">';
+      html += '<button class="qty-btn" onclick="changeQty(\'' + item.id + '\', ' + ((item.qty || 1) - 1) + ')">−</button>';
+      html += '<span class="qty-num">' + (item.qty || 1) + '</span>';
+      html += '<button class="qty-btn" onclick="changeQty(\'' + item.id + '\', ' + ((item.qty || 1) + 1) + ')">+</button>';
+      html += '<span style="font-size:13px; color:var(--gray); margin-left:4px;">= ₹' + (item.price * (item.qty || 1)).toFixed(2) + '</span>';
+      html += '</div>';
+      html += '</div>';
+      html += '<button class="remove-btn" onclick="removeItem(\'' + item.id + '\')" title="Remove">🗑️</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+
+    updateCartCount();
+  }
+
+  function changeQty(itemId, newQty) {
+    if (newQty < 1) {
+      removeItem(itemId);
+      return;
+    }
+
+    var user = getUser();
+    fetch(API + "/api/cart/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.userId, itemId: itemId, qty: newQty })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function () {
+        // Update local array and re-render
+        cartItems.forEach(function (item) {
+          if (item.id === itemId) item.qty = newQty;
+        });
+        renderCart();
+      })
+      .catch(function () {
+        showToast("Could not update quantity", "error");
+      });
+  }
+
+  function removeItem(itemId) {
+    var user = getUser();
+    fetch(API + "/api/cart/remove", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.userId, itemId: itemId })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function () {
+        cartItems = cartItems.filter(function (item) { return item.id !== itemId; });
+        renderCart();
+        showToast("Item removed from cart", "info");
+      })
+      .catch(function () {
+        showToast("Could not remove item", "error");
+      });
+  }
+
+  function clearCart() {
+    if (!confirm("Are you sure you want to clear the cart?")) return;
+    var user = getUser();
+    fetch(API + "/api/cart/" + user.userId, { method: "DELETE" })
+      .then(function (res) { return res.json(); })
+      .then(function () {
+        cartItems = [];
+        renderCart();
+        showToast("Cart cleared", "info");
+      })
+      .catch(function () {
+        showToast("Could not clear cart", "error");
+      });
+  }
+
+  function openCheckout() {
+    if (cartItems.length === 0) {
+      showToast("Your cart is empty", "error");
+      return;
+    }
+    document.getElementById("checkout-total-display").textContent = "₹" + cartTotal.toFixed(2);
+    document.getElementById("checkout-msg").style.display = "none";
+    document.getElementById("checkout-modal").classList.add("open");
+  }
+
+  function closeCheckout() {
+    document.getElementById("checkout-modal").classList.remove("open");
+  }
+
+  function closeSuccess() {
+    document.getElementById("success-modal").classList.remove("open");
+  }
+
+  function placeOrder() {
+    var name = document.getElementById("checkout-name").value.trim();
+    var address = document.getElementById("checkout-address").value.trim();
+    var phone = document.getElementById("checkout-phone").value.trim();
+
+    var msgBox = document.getElementById("checkout-msg");
+
+    if (!name || !address || !phone) {
+      msgBox.textContent = "Please fill in all fields";
+      msgBox.className = "msg-box msg-error";
+      msgBox.style.display = "block";
+      return;
+    }
+
+    var user = getUser();
+    var orderData = {
+      userId: user.userId,
+      items: cartItems,
+      amount: cartTotal,
+      address: name + ", " + address + " | Phone: " + phone
+    };
+
+    var btn = document.querySelector("#checkout-modal .form-submit-btn");
+    btn.textContent = "Placing order...";
+    btn.disabled = true;
+
+    fetch(API + "/api/orders/place", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData)
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        btn.textContent = "Place Order 🎉";
+        btn.disabled = false;
+
+        if (data.success) {
+          closeCheckout();
+          // Clear the cart from DB
+          fetch(API + "/api/cart/" + user.userId, { method: "DELETE" });
+          cartItems = [];
+          renderCart();
+          document.getElementById("success-total").textContent = "₹" + cartTotal.toFixed(2);
+          document.getElementById("success-modal").classList.add("open");
+        } else {
+          msgBox.textContent = data.msg || "Order failed. Please try again.";
+          msgBox.className = "msg-box msg-error";
+          msgBox.style.display = "block";
+        }
+      })
+      .catch(function () {
+        btn.textContent = "Place Order 🎉";
+        btn.disabled = false;
+        msgBox.textContent = "Network error. Is the server running?";
+        msgBox.className = "msg-box msg-error";
+        msgBox.style.display = "block";
+      });
+  }
+
+  // Close modal if click outside
+  document.getElementById("checkout-modal").addEventListener("click", function (e) {
+    if (e.target === this) closeCheckout();
+  });
+
+  init();
+</script>
+
+</body>
+</html>
